@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12 mb-4">
+        <h2>Welcome to Ananas AI</h2>
+        <p>Access your materials and exercises in one place.</p>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Notes Section -->
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h3 class="card-title mb-0">Notes</h3>
+            </div>
+            <div class="card-body">
+                {% if notes %}
+                    <ul class="list-group list-group-flush">
+                    {% for note in notes %}
+                        <li class="list-group-item">
+                            <h5>{{ note.title }}</h5>
+                            <p class="mb-1">{{ note.description }}</p>
+                            <div class="btn-group">
+                                <a href="{{ url_for('download', id=note.id) }}" class="btn btn-sm btn-primary">Download</a>
+                                {% if current_user.is_authenticated and current_user.is_admin %}
+                                <a href="{{ url_for('delete', id=note.id) }}" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure?')">Delete</a>
+                                {% endif %}
+                            </div>
+                        </li>
+                    {% endfor %}
+                    </ul>
+                {% else %}
+                    <p class="text-muted">No notes available</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Exercises Section -->
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header bg-success text-white">
+                <h3 class="card-title mb-0">Exercises</h3>
+            </div>
+            <div class="card-body">
+                {% if exercises %}
+                    <ul class="list-group list-group-flush">
+                    {% for exercise in exercises %}
+                        <li class="list-group-item">
+                            <h5>{{ exercise.title }}</h5>
+                            <p class="mb-1">{{ exercise.description }}</p>
+                            <div class="btn-group">
+                                <a href="{{ url_for('download', id=exercise.id) }}" class="btn btn-sm btn-success">Download</a>
+                                {% if current_user.is_authenticated and current_user.is_admin %}
+                                <a href="{{ url_for('delete', id=exercise.id) }}" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure?')">Delete</a>
+                                {% endif %}
+                            </div>
+                        </li>
+                    {% endfor %}
+                    </ul>
+                {% else %}
+                    <p class="text-muted">No exercises available</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+
+</div>
+{% endblock %}
