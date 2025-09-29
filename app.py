@@ -67,9 +67,13 @@ def load_user(user_id):
 
 @app.route('/')
 def home():
+    return send_from_directory('.', 'index.html')
+
+@app.route('/dashboard')
+def dashboard():
     notes = Material.query.filter_by(category='notes').all()
     exercises = Material.query.filter_by(category='exercise').all()
-    return render_template('index.html', notes=notes, exercises=exercises)
+    return render_template('dashboard.html', notes=notes, exercises=exercises)
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
