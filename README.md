@@ -62,9 +62,7 @@ gunicorn -w 4 -b 127.0.0.1:8000 app:app
 
 ### Security Notes
 
-1. Always change the default admin credentials:
-   - Username: admin
-   - Default password: admin123
+
 
 2. Set a secure SECRET_KEY in production
 3. Configure your web server with HTTPS
