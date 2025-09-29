@@ -37,6 +37,36 @@ body {
     transform: translateY(-5px);
 }
 
+/* About page styles */
+.about-section {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+}
+
+.profile-image img {
+    transition: transform 0.3s ease;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.profile-image img:hover {
+    transform: scale(1.05);
+}
+
+.feature-card {
+    transition: all 0.3s ease;
+    border: 1px solid rgba(0,0,0,0.1);
+}
+
+.feature-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.contact-section i {
+    font-size: 24px;
+    display: block;
+    margin-bottom: 10px;
+}
+
 .footer {
     margin-top: auto;
 }

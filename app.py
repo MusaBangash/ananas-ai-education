@@ -69,6 +69,10 @@ def load_user(user_id):
 def home():
     return send_from_directory('.', 'index.html')
 
+@app.route('/about')
+def about():
+    return render_template('about.html')
+
 @app.route('/dashboard')
 def dashboard():
     notes = Material.query.filter_by(category='notes').all()
