@@ -3,46 +3,119 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ananas AI</title>
+    <title>Ananas AI Education</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="../static/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/modern.css') }}">
+    <script src="https://unpkg.com/scrollreveal"></script>
+    <style>
+        .toast {
+            background-color: var(--dark-card) !important;
+            color: var(--dark-text) !important;
+        }
+        .toast-header {
+            background-color: var(--darker-bg) !important;
+            color: var(--dark-text) !important;
+            border-bottom: 1px solid var(--dark-border) !important;
+        }
+        .btn-primary {
+            background-color: var(--dark-primary) !important;
+            border-color: var(--dark-primary) !important;
+        }
+        .btn-primary:hover {
+            background-color: #5d63d7 !important;
+            border-color: #5d63d7 !important;
+        }
+        .dashboard-header .text-white {
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+        .hover-lift:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.3) !important;
+        }
+        /* Dark scrollbar */
+        ::-webkit-scrollbar {
+            width: 10px;
+            height: 10px;
+        }
+        ::-webkit-scrollbar-track {
+            background: var(--darker-bg);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: var(--dark-border);
+            border-radius: 5px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--dark-primary);
+        }
+    </style>
 </head>
-<body>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+<body class="bg-light">
+    <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm sticky-top">
         <div class="container">
-            <a class="navbar-brand" href="../index.html">Ananas AI</a>
+            <a class="navbar-brand d-flex align-items-center" href="{{ url_for('dashboard') }}">
+                <img src="{{ url_for('static', filename='img/logo.jpg') }}" alt="Ananas AI Logo" class="me-2" style="height: 40px; width: auto;">
+                <span class="text-primary fw-bold">Ananas AI</span>
+            </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto">
+                <ul class="navbar-nav ms-auto align-items-center">
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('home') }}">Home</a>
+                        <a class="nav-link" href="{{ url_for('dashboard') }}">
+                            <i class="fas fa-tachometer-alt icon-animate me-1"></i> Dashboard
+                        </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('about') }}">About</a>
+                        <a class="nav-link" href="{{ url_for('about') }}">
+                            <i class="fas fa-info-circle icon-animate me-1"></i> About
+                        </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('dashboard') }}">Dashboard</a>
+                        <a class="nav-link" href="{{ url_for('students') }}">
+                            <i class="fas fa-users icon-animate me-1"></i> Students
+                        </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('students') }}">Students</a>
+                        <a class="nav-link" href="{{ url_for('gallery') }}">
+                            <i class="fas fa-images icon-animate me-1"></i> Gallery
+                        </a>
                     </li>
                     {% if current_user.is_authenticated and current_user.is_admin %}
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('upload') }}">Upload Material</a>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="uploadDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fas fa-upload me-1"></i> Upload
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="uploadDropdown">
+                            <li>
+                                <a class="dropdown-item" href="{{ url_for('upload') }}">
+                                    <i class="fas fa-file-upload me-2"></i>Upload Materials
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" href="{{ url_for('upload_gallery') }}">
+                                    <i class="fas fa-images me-2"></i>Upload to Gallery
+                                </a>
+                            </li>
+                        </ul>
                     </li>
                     <li class="nav-item">
-                        <span class="nav-link text-warning">[Admin]</span>
+                        <span class="badge bg-warning ms-2">Admin</span>
                     </li>
                     {% endif %}
                     {% if current_user.is_authenticated %}
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('logout') }}">Logout</a>
+                        <a class="btn btn-secondary ms-2" href="{{ url_for('logout') }}">
+                            <i class="fas fa-sign-out-alt me-1"></i> Logout
+                        </a>
                     </li>
                     {% else %}
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('login') }}">Login</a>
+                        <a class="btn btn-primary ms-2" href="{{ url_for('login') }}">
+                            <i class="fas fa-sign-in-alt me-1"></i> Login
+                        </a>
                     </li>
                     {% endif %}
                 </ul>
@@ -50,25 +123,97 @@
         </div>
     </nav>
 
-    <div class="container mt-4">
-        {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-                {% for category, message in messages %}
-                    <div class="alert alert-{{ category }}">{{ message }}</div>
-                {% endfor %}
-            {% endif %}
-        {% endwith %}
-        
+    <!-- Flash Messages with Animation -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="toast show position-fixed bottom-0 end-0 m-4" role="alert">
+                    <div class="toast-header bg-{{ category }} text-white">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <strong class="me-auto">Notification</strong>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast"></button>
+                    </div>
+                    <div class="toast-body">
+                        {{ message }}
+                    </div>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <!-- Main Content -->
+    <div class="container my-4">
         {% block content %}
         {% endblock %}
     </div>
 
-    <footer class="footer mt-5 py-3 bg-light">
-        <div class="container text-center">
-            <span class="text-muted">© 2025 Ananas AI. All rights reserved.</span>
+    <!-- Modern Footer -->
+    <footer class="bg-white border-top mt-5 py-4">
+        <div class="container">
+            <div class="row g-4">
+                <div class="col-md-4">
+                    <h5 class="text-primary mb-3">
+                        <i class="fas fa-graduation-cap me-2"></i>Ananas AI
+                    </h5>
+                    <p class="text-muted">Empowering minds through advanced AI education and practical learning experiences.</p>
+                </div>
+                <div class="col-md-4">
+                    <h5 class="text-primary mb-3">Quick Links</h5>
+                    <ul class="list-unstyled">
+                        <li class="mb-2">
+                            <a href="{{ url_for('home') }}" class="text-muted text-decoration-none">
+                                <i class="fas fa-chevron-right me-1"></i> Home
+                            </a>
+                        </li>
+                        <li class="mb-2">
+                            <a href="{{ url_for('about') }}" class="text-muted text-decoration-none">
+                                <i class="fas fa-chevron-right me-1"></i> About
+                            </a>
+                        </li>
+                        <li class="mb-2">
+                            <a href="{{ url_for('dashboard') }}" class="text-muted text-decoration-none">
+                                <i class="fas fa-chevron-right me-1"></i> Dashboard
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+                <div class="col-md-4">
+                    <h5 class="text-primary mb-3">Connect</h5>
+                    <div class="d-flex gap-3">
+                        <a href="https://github.com/MusaBangash" target="_blank" class="text-muted fs-4">
+                            <i class="fab fa-github icon-animate"></i>
+                        </a>
+                        <a href="https://www.linkedin.com/in/muhammad-musa-kaleem-295a47199/" target="_blank" class="text-muted fs-4">
+                            <i class="fab fa-linkedin icon-animate"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <hr class="my-4">
+            <p class="text-center text-muted mb-0">© 2025 Ananas AI. All rights reserved.</p>
         </div>
     </footer>
 
+    <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Initialize ScrollReveal for animation
+        ScrollReveal().reveal('.card', {
+            delay: 200,
+            distance: '20px',
+            origin: 'bottom',
+            interval: 100
+        });
+
+        // Initialize Toasts
+        var toastElList = [].slice.call(document.querySelectorAll('.toast'))
+        var toastList = toastElList.map(function (toastEl) {
+            return new bootstrap.Toast(toastEl, {
+                autohide: true,
+                delay: 3000
+            })
+        });
+    </script>
+    {% block scripts %}{% endblock %}
 </body>
 </html>

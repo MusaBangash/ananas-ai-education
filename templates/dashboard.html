@@ -1,72 +1,200 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="row">
-    <div class="col-md-12 mb-4">
-        <h2>Welcome to Ananas AI</h2>
-        <p>Access your materials and exercises in one place.</p>
+<!-- Dashboard Header -->
+<div class="dashboard-header py-4 bg-gradient position-relative mb-4">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-8">
+                <h1 class="text-white mb-2" style="text-shadow: 2px 2px 4px rgba(0,0,0,0.3)">Learning Dashboard</h1>
+                <p class="text-white mb-0" style="text-shadow: 1px 1px 3px rgba(0,0,0,0.2)">
+                    Access your learning materials and track your progress
+                </p>
+            </div>
+            {% if current_user.is_authenticated and current_user.is_admin %}
+            <div class="col-lg-4 text-lg-end mt-3 mt-lg-0">
+                <a href="{{ url_for('upload') }}" class="btn btn-light btn-lg">
+                    <i class="fas fa-upload me-2"></i> Upload New Material
+                </a>
+            </div>
+            {% endif %}
+        </div>
     </div>
 </div>
 
-<div class="row">
-    <!-- Notes Section -->
-    <div class="col-md-6 mb-4">
-        <div class="card">
-            <div class="card-header bg-primary text-white">
-                <h3 class="card-title mb-0">Notes</h3>
+<div class="container">
+    <!-- Stats Overview -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm hover-lift">
+                <div class="card-body p-4">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="icon-circle bg-primary bg-opacity-10 text-primary me-3">
+                            <i class="fas fa-book fa-2x"></i>
+                        </div>
+                        <div>
+                            <h3 class="mb-0">{{ notes.total }}</h3>
+                            <p class="text-muted mb-0">Study Materials</p>
+                        </div>
+                    </div>
+                </div>
             </div>
-            <div class="card-body">
-                {% if notes %}
-                    <ul class="list-group list-group-flush">
-                    {% for note in notes %}
-                        <li class="list-group-item">
-                            <h5>{{ note.title }}</h5>
-                            <p class="mb-1">{{ note.description }}</p>
-                            <div class="btn-group">
-                                <a href="{{ url_for('download', id=note.id) }}" class="btn btn-sm btn-primary">Download</a>
-                                {% if current_user.is_authenticated and current_user.is_admin %}
-                                <a href="{{ url_for('delete', id=note.id) }}" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure?')">Delete</a>
-                                {% endif %}
-                            </div>
-                        </li>
-                    {% endfor %}
-                    </ul>
-                {% else %}
-                    <p class="text-muted">No notes available</p>
-                {% endif %}
+        </div>
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm hover-lift">
+                <div class="card-body p-4">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="icon-circle bg-success bg-opacity-10 text-success me-3">
+                            <i class="fas fa-tasks fa-2x"></i>
+                        </div>
+                        <div>
+                            <h3 class="mb-0">{{ exercises.total }}</h3>
+                            <p class="text-muted mb-0">Exercises</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm hover-lift">
+                <div class="card-body p-4">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="icon-circle bg-info bg-opacity-10 text-info me-3">
+                            <i class="fas fa-download fa-2x"></i>
+                        </div>
+                        <div>
+                            <h3 class="mb-0">{{ notes.total + exercises.total }}</h3>
+                            <p class="text-muted mb-0">Total Resources</p>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- Exercises Section -->
-    <div class="col-md-6 mb-4">
-        <div class="card">
-            <div class="card-header bg-success text-white">
-                <h3 class="card-title mb-0">Exercises</h3>
-            </div>
-            <div class="card-body">
-                {% if exercises %}
-                    <ul class="list-group list-group-flush">
-                    {% for exercise in exercises %}
-                        <li class="list-group-item">
-                            <h5>{{ exercise.title }}</h5>
-                            <p class="mb-1">{{ exercise.description }}</p>
-                            <div class="btn-group">
-                                <a href="{{ url_for('download', id=exercise.id) }}" class="btn btn-sm btn-success">Download</a>
-                                {% if current_user.is_authenticated and current_user.is_admin %}
-                                <a href="{{ url_for('delete', id=exercise.id) }}" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure?')">Delete</a>
-                                {% endif %}
+    <div class="row g-4">
+        <!-- Study Materials -->
+        <div class="col-lg-6">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white py-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">
+                            <i class="fas fa-book text-primary me-2"></i> Study Materials
+                        </h5>
+                        {% if current_user.is_authenticated and current_user.is_admin %}
+                        <a href="{{ url_for('upload') }}?type=note" class="btn btn-sm btn-outline-primary">
+                            <i class="fas fa-plus me-1"></i> Add Material
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="card-body p-0">
+                    {% if notes %}
+                    <div class="list-group list-group-flush">
+                        {% for note in notes %}
+                        <div class="list-group-item p-3">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div class="d-flex align-items-center">
+                                    <div class="me-3">
+                                        <i class="fas fa-file-pdf fa-2x text-danger"></i>
+                                    </div>
+                                    <div>
+                                        <h6 class="mb-1">{{ note.title }}</h6>
+                                        <p class="text-muted mb-1 small">{{ note.description }}</p>
+                                        <small class="text-muted">
+                                            <i class="fas fa-clock me-1"></i> Added {{ note.created_at.strftime('%Y-%m-%d') if note.created_at }}
+                                        </small>
+                                    </div>
+                                </div>
+                                <div class="btn-group">
+                                    <a href="{{ url_for('download', id=note.id) }}" class="btn btn-light btn-sm">
+                                        <i class="fas fa-download me-1"></i> Download
+                                    </a>
+                                    {% if current_user.is_authenticated and current_user.is_admin %}
+                                    <a href="{{ url_for('delete', id=note.id) }}" class="btn btn-light btn-sm text-danger" onclick="return confirm('Are you sure you want to delete this material?')">
+                                        <i class="fas fa-trash-alt"></i>
+                                    </a>
+                                    {% endif %}
+                                </div>
                             </div>
-                        </li>
-                    {% endfor %}
-                    </ul>
-                {% else %}
-                    <p class="text-muted">No exercises available</p>
-                {% endif %}
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="text-center py-5">
+                        <i class="fas fa-book-open fa-3x text-muted mb-3"></i>
+                        <p class="text-muted">No study materials available yet.</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Exercises -->
+        <div class="col-lg-6">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white py-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">
+                            <i class="fas fa-tasks text-success me-2"></i> Exercises
+                        </h5>
+                        {% if current_user.is_authenticated and current_user.is_admin %}
+                        <a href="{{ url_for('upload') }}?type=exercise" class="btn btn-sm btn-outline-success">
+                            <i class="fas fa-plus me-1"></i> Add Exercise
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="card-body p-0">
+                    {% if exercises %}
+                    <div class="list-group list-group-flush">
+                        {% for exercise in exercises %}
+                        <div class="list-group-item p-3">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div class="d-flex align-items-center">
+                                    <div class="me-3">
+                                        <i class="fas fa-file-code fa-2x text-success"></i>
+                                    </div>
+                                    <div>
+                                        <h6 class="mb-1">{{ exercise.title }}</h6>
+                                        <p class="text-muted mb-1 small">{{ exercise.description }}</p>
+                                        <small class="text-muted">
+                                            <i class="fas fa-clock me-1"></i> Added {{ exercise.created_at.strftime('%Y-%m-%d') if exercise.created_at }}
+                                        </small>
+                                    </div>
+                                </div>
+                                <div class="btn-group">
+                                    <a href="{{ url_for('download', id=exercise.id) }}" class="btn btn-light btn-sm">
+                                        <i class="fas fa-download me-1"></i> Download
+                                    </a>
+                                    {% if current_user.is_authenticated and current_user.is_admin %}
+                                    <a href="{{ url_for('delete', id=exercise.id) }}" class="btn btn-light btn-sm text-danger" onclick="return confirm('Are you sure you want to delete this exercise?')">
+                                        <i class="fas fa-trash-alt"></i>
+                                    </a>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="text-center py-5">
+                        <i class="fas fa-tasks fa-3x text-muted mb-3"></i>
+                        <p class="text-muted">No exercises available yet.</p>
+                    </div>
+                    {% endif %}
+                </div>
             </div>
         </div>
     </div>
-
-
 </div>
+
+<!-- Floating Action Button for Admin -->
+{% if current_user.is_authenticated and current_user.is_admin %}
+<div class="position-fixed bottom-0 end-0 mb-4 me-4">
+    <a href="{{ url_for('upload') }}" class="btn btn-primary btn-lg rounded-circle shadow-lg">
+        <i class="fas fa-plus"></i>
+    </a>
+</div>
+{% endif %}
 {% endblock %}

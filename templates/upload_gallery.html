@@ -6,9 +6,9 @@
     <div class="container">
         <div class="row align-items-center">
             <div class="col-lg-8">
-                <h1 class="text-white mb-2" style="text-shadow: 2px 2px 4px rgba(0,0,0,0.3)">Upload Learning Material</h1>
+                <h1 class="text-white mb-2" style="text-shadow: 2px 2px 4px rgba(0,0,0,0.3)">Upload to Gallery</h1>
                 <p class="text-white mb-0" style="text-shadow: 1px 1px 3px rgba(0,0,0,0.2)">
-                    Share educational resources with your students
+                    Share images with your community
                 </p>
             </div>
         </div>
@@ -36,20 +36,26 @@
                                    id="title" 
                                    name="title" 
                                    required
-                                   placeholder="Enter material title">
-                            <div class="invalid-feedback">Please provide a title for the material.</div>
+                                   placeholder="Enter image title">
+                            <div class="invalid-feedback">Please provide a title for the image.</div>
                         </div>
                         
-                        <!-- Category Selection -->
+                        <!-- Category Select -->
                         <div class="mb-4">
                             <label for="category" class="form-label fw-bold">
                                 <i class="fas fa-tag me-2 text-primary"></i>Category
                             </label>
-                            <select class="form-select form-select-lg" id="category" name="category" required>
+                            <select class="form-select form-select-lg" 
+                                    id="category" 
+                                    name="category" 
+                                    required>
                                 <option value="" selected disabled>Select a category</option>
-                                <option value="notes">📚 Study Notes</option>
-                                <option value="exercise">✍️ Exercise</option>
-                                <option value="exam">📝 Practice Exam</option>
+                                <option value="General">General</option>
+                                <option value="Education">Education</option>
+                                <option value="Tour">Tour</option>
+                                <option value="Quiz">Quiz</option>
+                                <option value="Information">Information</option>
+                                <option value="Facts">Facts</option>
                             </select>
                             <div class="invalid-feedback">Please select a category.</div>
                         </div>
@@ -63,35 +69,39 @@
                                       id="description" 
                                       name="description" 
                                       rows="4"
-                                      placeholder="Provide a brief description of the material"></textarea>
+                                      placeholder="Provide a brief description of the image"></textarea>
                         </div>
 
-                        <!-- File Upload -->
+                        <!-- Image Upload -->
                         <div class="mb-4">
-                            <label for="file" class="form-label fw-bold">
-                                <i class="fas fa-file-upload me-2 text-primary"></i>File
+                            <label for="image" class="form-label fw-bold">
+                                <i class="fas fa-image me-2 text-primary"></i>Image
                             </label>
-                            <div class="input-group">
+                            <div class="image-upload-container">
                                 <input type="file" 
                                        class="form-control form-control-lg" 
-                                       id="file" 
-                                       name="file" 
+                                       id="image" 
+                                       name="image" 
                                        required
-                                       accept=".pdf,.doc,.docx,.ppt,.pptx,.txt">
-                                <div class="invalid-feedback">Please select a file to upload.</div>
+                                       accept="image/*"
+                                       onchange="previewImage(this);">
+                                <div class="invalid-feedback">Please select an image to upload.</div>
+                                <div id="imagePreview" class="mt-3 text-center d-none">
+                                    <img src="" alt="Preview" class="img-fluid rounded" style="max-height: 300px;">
+                                </div>
                             </div>
                             <small class="text-muted mt-2">
-                                Supported formats: PDF, DOC, DOCX, PPT, PPTX, TXT
+                                Supported formats: JPG, PNG, GIF
                             </small>
                         </div>
 
                         <!-- Action Buttons -->
                         <div class="d-flex justify-content-end gap-2 mt-4">
-                            <a href="{{ url_for('dashboard') }}" class="btn btn-light btn-lg px-4">
+                            <a href="{{ url_for('gallery') }}" class="btn btn-light btn-lg px-4">
                                 <i class="fas fa-times me-2"></i>Cancel
                             </a>
                             <button type="submit" class="btn btn-primary btn-lg px-4">
-                                <i class="fas fa-cloud-upload-alt me-2"></i>Upload Material
+                                <i class="fas fa-cloud-upload-alt me-2"></i>Upload Image
                             </button>
                         </div>
                     </form>
@@ -101,8 +111,25 @@
     </div>
 </div>
 
-<!-- Form Validation Script -->
+<!-- Image Preview Script -->
 <script>
+function previewImage(input) {
+    const preview = document.getElementById('imagePreview');
+    const previewImg = preview.querySelector('img');
+    
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        
+        reader.onload = function(e) {
+            previewImg.src = e.target.result;
+            preview.classList.remove('d-none');
+        }
+        
+        reader.readAsDataURL(input.files[0]);
+    }
+}
+
+// Form validation
 (function () {
     'use strict'
     var forms = document.querySelectorAll('.needs-validation')

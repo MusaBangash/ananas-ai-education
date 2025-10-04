@@ -1,0 +1,177 @@
+{% extends "base.html" %}
+
+{% block content %}
+<!-- Header Section -->
+<div class="dashboard-header py-4 bg-gradient position-relative mb-4">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-8">
+                <h1 class="text-white mb-2" style="text-shadow: 2px 2px 4px rgba(0,0,0,0.3)">Image Gallery</h1>
+                <p class="text-white mb-0" style="text-shadow: 1px 1px 3px rgba(0,0,0,0.2)">
+                    Browse through our collection of images
+                </p>
+            </div>
+            <div class="col-lg-4 text-lg-end mt-3 mt-lg-0">
+                {% if current_user.is_authenticated %}
+                    {% if current_user.is_admin %}
+                        <a href="{{ url_for('upload_gallery') }}" class="btn btn-primary btn-lg hover-lift">
+                            <i class="fas fa-cloud-upload-alt me-2"></i>Upload New Image
+                        </a>
+                    {% else %}
+                        <!-- Non-admin user message -->
+                        <span class="badge bg-info">Regular User</span>
+                    {% endif %}
+                {% else %}
+                    <a href="{{ url_for('login') }}" class="btn btn-light btn-lg">
+                        <i class="fas fa-sign-in-alt me-2"></i>Login to Upload
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    <div class="custom-shape-divider-bottom">
+        <svg data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 120" preserveAspectRatio="none">
+            <path d="M321.39,56.44c58-10.79,114.16-30.13,172-41.86,82.39-16.72,168.19-17.73,250.45-.39C823.78,31,906.67,72,985.66,92.83c70.05,18.48,146.53,26.09,214.34,3V0H0V27.35A600.21,600.21,0,0,0,321.39,56.44Z" class="shape-fill"></path>
+        </svg>
+    </div>
+</div>
+
+<div class="container pb-5">
+    <!-- Category Filter -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-4">
+                            <label for="categoryFilter" class="form-label mb-0">
+                                <i class="fas fa-filter me-2 text-primary"></i>Filter by Category
+                            </label>
+                        </div>
+                        <div class="col-md-8">
+                            <select class="form-select" id="categoryFilter" onchange="filterGallery(this.value)">
+                                <option value="" {% if not selected_category %}selected{% endif %}>All Categories</option>
+                                {% for cat, description in categories %}
+                                <option value="{{ cat }}" {% if selected_category == cat %}selected{% endif %}
+                                        title="{{ description }}">
+                                    {{ cat }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    function filterGallery(category) {
+        if (category) {
+            window.location.href = "{{ url_for('gallery') }}?category=" + encodeURIComponent(category);
+        } else {
+            window.location.href = "{{ url_for('gallery') }}";
+        }
+    }
+    </script>
+
+    <!-- Image Grid -->
+    <div class="row g-4">
+        {% for image in images.items %}
+        <div class="col-md-6 col-lg-4 col-xl-3">
+            <div class="card h-100 border-0 shadow-sm hover-lift gallery-card">
+                <div class="position-relative">
+                    <img src="{{ url_for('download', id=image.id, type='gallery') }}" 
+                         alt="{{ image.title }}" 
+                         class="card-img-top"
+                         style="height: 200px; object-fit: cover;">
+                    {% if current_user.is_authenticated and current_user.is_admin %}
+                    <a href="{{ url_for('delete_gallery', id=image.id) }}" 
+                       class="btn btn-danger btn-sm position-absolute top-0 end-0 m-2"
+                       onclick="return confirm('Are you sure you want to delete this image?');">
+                        <i class="fas fa-trash"></i>
+                    </a>
+                    {% endif %}
+                </div>
+                <div class="card-body">
+                    <h5 class="card-title mb-1">{{ image.title }}</h5>
+                    <p class="text-muted small mb-2">
+                        <i class="fas fa-tag me-1"></i>{{ image.category }}
+                    </p>
+                    {% if image.description %}
+                    <p class="card-text small">{{ image.description }}</p>
+                    {% endif %}
+                </div>
+                <div class="card-footer bg-transparent border-0 text-muted small">
+                    <i class="fas fa-calendar me-1"></i>{{ image.upload_date.strftime('%B %d, %Y') }}
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Pagination -->
+    {% if images.pages > 1 %}
+    <nav class="mt-4" aria-label="Gallery pagination">
+        <ul class="pagination justify-content-center">
+            {% if images.has_prev %}
+            <li class="page-item">
+                <a class="page-link" href="{{ url_for('gallery', page=images.prev_num, category=selected_category) }}">
+                    <i class="fas fa-chevron-left"></i>
+                </a>
+            </li>
+            {% endif %}
+            
+            {% for page_num in images.iter_pages(left_edge=2, left_current=2, right_current=3, right_edge=2) %}
+                {% if page_num %}
+                    <li class="page-item {% if page_num == images.page %}active{% endif %}">
+                        <a class="page-link" href="{{ url_for('gallery', page=page_num, category=selected_category) }}">
+                            {{ page_num }}
+                        </a>
+                    </li>
+                {% else %}
+                    <li class="page-item disabled">
+                        <span class="page-link">...</span>
+                    </li>
+                {% endif %}
+            {% endfor %}
+            
+            {% if images.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="{{ url_for('gallery', page=images.next_num, category=selected_category) }}">
+                    <i class="fas fa-chevron-right"></i>
+                </a>
+            </li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+</div>
+
+<!-- Lightbox Modal -->
+<div class="modal fade" id="imageModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content border-0">
+            <div class="modal-body p-0">
+                <img src="" class="img-fluid" alt="Gallery image">
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize image click handlers for lightbox
+    const galleryImages = document.querySelectorAll('.gallery-card img');
+    const modal = new bootstrap.Modal(document.getElementById('imageModal'));
+    const modalImg = document.querySelector('#imageModal img');
+
+    galleryImages.forEach(img => {
+        img.addEventListener('click', function() {
+            modalImg.src = this.src;
+            modal.show();
+        });
+    });
+});
+</script>
+{% endblock %}

@@ -1,52 +1,188 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="row">
-    <div class="col-md-8 offset-md-2">
-        <div class="card">
-            <div class="card-header bg-primary text-white">
-                <h3 class="card-title mb-0">Edit Student Profile</h3>
+<!-- Header Section -->
+<div class="dashboard-header py-4 bg-gradient position-relative mb-4">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-8">
+                <h1 class="text-white mb-2" style="text-shadow: 2px 2px 4px rgba(0,0,0,0.3)">Edit Student Profile</h1>
+                <p class="text-white mb-0" style="text-shadow: 1px 1px 3px rgba(0,0,0,0.2)">
+                    Update information for {{ student.name }}
+                </p>
             </div>
-            <div class="card-body">
-                <form method="POST" enctype="multipart/form-data">
-                    <div class="mb-3">
-                        <label for="name" class="form-label">Name</label>
-                        <input type="text" class="form-control" id="name" name="name" value="{{ student.name }}" required>
-                    </div>
+        </div>
+    </div>
+    <div class="custom-shape-divider-bottom">
+        <svg data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 120" preserveAspectRatio="none">
+            <path d="M321.39,56.44c58-10.79,114.16-30.13,172-41.86,82.39-16.72,168.19-17.73,250.45-.39C823.78,31,906.67,72,985.66,92.83c70.05,18.48,146.53,26.09,214.34,3V0H0V27.35A600.21,600.21,0,0,0,321.39,56.44Z" class="shape-fill"></path>
+        </svg>
+    </div>
+</div>
 
-                    <div class="mb-3">
-                        <label for="profile_picture" class="form-label">Profile Picture</label>
-                        {% if student.profile_picture %}
-                        <p class="text-muted">Current: {{ student.profile_picture }}</p>
-                        {% endif %}
-                        <input type="file" class="form-control" id="profile_picture" name="profile_picture" accept="image/*">
-                    </div>
+<div class="container pb-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm hover-lift">
+                <div class="card-body p-4">
+                    <form method="POST" enctype="multipart/form-data" class="needs-validation" novalidate>
+                        <!-- Personal Information -->
+                        <div class="section-header mb-4">
+                            <h4 class="text-primary">
+                                <i class="fas fa-user-circle me-2"></i>Personal Information
+                            </h4>
+                            <hr>
+                        </div>
 
-                    <div class="mb-3">
-                        <label for="resume" class="form-label">Resume</label>
-                        {% if student.resume %}
-                        <p class="text-muted">Current: {{ student.resume }}</p>
-                        {% endif %}
-                        <input type="file" class="form-control" id="resume" name="resume" accept=".pdf,.doc,.docx">
-                    </div>
+                        <div class="row g-4 mb-4">
+                            <div class="col-md-12">
+                                <div class="form-floating">
+                                    <input type="text" class="form-control" id="name" name="name" value="{{ student.name }}" required>
+                                    <label for="name">Full Name</label>
+                                    <div class="invalid-feedback">Please enter student's name</div>
+                                </div>
+                            </div>
 
-                    <div class="mb-3">
-                        <label for="description" class="form-label">Description</label>
-                        <textarea class="form-control" id="description" name="description" rows="3">{{ student.description }}</textarea>
-                    </div>
+                            <div class="col-md-12">
+                                <label class="form-label text-muted mb-2">
+                                    <i class="fas fa-image me-1"></i> Profile Picture
+                                </label>
+                                {% if student.profile_picture %}
+                                <div class="current-file mb-2">
+                                    <div class="d-flex align-items-center p-2 bg-light rounded">
+                                        <i class="fas fa-image text-primary me-2"></i>
+                                        <span class="text-muted">Current: {{ student.profile_picture }}</span>
+                                        {% if student.profile_picture %}
+                                        <img src="{{ url_for('download', id=student.id, type='profile') }}" 
+                                             alt="Current profile" 
+                                             class="ms-auto rounded-circle"
+                                             style="width: 40px; height: 40px; object-fit: cover;">
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                {% endif %}
+                                <div class="input-group">
+                                    <input type="file" class="form-control" id="profile_picture" name="profile_picture" accept="image/*">
+                                    <label class="input-group-text" for="profile_picture">
+                                        <i class="fas fa-upload"></i>
+                                    </label>
+                                </div>
+                                <small class="text-muted">Supported formats: JPG, PNG (Max: 5MB)</small>
+                            </div>
 
-                    <div class="mb-3">
-                        <label for="skills" class="form-label">Skills</label>
-                        <textarea class="form-control" id="skills" name="skills" rows="3" placeholder="Enter skills separated by commas">{{ student.skills }}</textarea>
-                    </div>
+                            <div class="col-md-12">
+                                <label class="form-label text-muted mb-2">
+                                    <i class="fas fa-file-pdf me-1"></i> Resume
+                                </label>
+                                {% if student.resume %}
+                                <div class="current-file mb-2">
+                                    <div class="d-flex align-items-center p-2 bg-light rounded">
+                                        <i class="fas fa-file-pdf text-danger me-2"></i>
+                                        <span class="text-muted">Current: {{ student.resume }}</span>
+                                        <a href="{{ url_for('download', id=student.id, type='resume') }}" 
+                                           class="btn btn-sm btn-light ms-auto">
+                                            <i class="fas fa-download"></i>
+                                        </a>
+                                    </div>
+                                </div>
+                                {% endif %}
+                                <div class="input-group">
+                                    <input type="file" class="form-control" id="resume" name="resume" accept=".pdf,.doc,.docx">
+                                    <label class="input-group-text" for="resume">
+                                        <i class="fas fa-upload"></i>
+                                    </label>
+                                </div>
+                                <small class="text-muted">Supported formats: PDF, DOC, DOCX (Max: 10MB)</small>
+                            </div>
+                        </div>
 
-                    <div class="text-end">
-                        <a href="{{ url_for('students') }}" class="btn btn-secondary">Cancel</a>
-                        <button type="submit" class="btn btn-primary">Update Student</button>
-                    </div>
-                </form>
+                        <!-- Additional Information -->
+                        <div class="section-header mb-4">
+                            <h4 class="text-primary">
+                                <i class="fas fa-info-circle me-2"></i>Additional Information
+                            </h4>
+                            <hr>
+                        </div>
+
+                        <div class="row g-4 mb-4">
+                            <div class="col-md-12">
+                                <div class="form-floating">
+                                    <textarea class="form-control" id="description" name="description" style="height: 100px">{{ student.description }}</textarea>
+                                    <label for="description">Description</label>
+                                    <small class="text-muted">Brief introduction about the student</small>
+                                </div>
+                            </div>
+
+                            <div class="col-md-12">
+                                <div class="form-floating">
+                                    <textarea class="form-control" id="skills" name="skills" style="height: 100px">{{ student.skills }}</textarea>
+                                    <label for="skills">Skills</label>
+                                    <small class="text-muted">Enter relevant skills separated by commas</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Submit Buttons -->
+                        <div class="d-flex justify-content-end gap-2">
+                            <a href="{{ url_for('students') }}" class="btn btn-light">
+                                <i class="fas fa-times me-1"></i> Cancel
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-1"></i> Update Profile
+                            </button>
+                        </div>
+                    </form>
+                </div>
             </div>
         </div>
     </div>
 </div>
+
+{% block scripts %}
+<script>
+    // Form validation
+    (function() {
+        'use strict';
+        var forms = document.querySelectorAll('.needs-validation');
+        Array.prototype.slice.call(forms).forEach(function(form) {
+            form.addEventListener('submit', function(event) {
+                if (!form.checkValidity()) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                }
+                form.classList.add('was-validated');
+            }, false);
+        });
+    })();
+
+    // File input preview and validation
+    document.getElementById('profile_picture').addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file) {
+            if (file.size > 5 * 1024 * 1024) {
+                alert('File size exceeds 5MB limit');
+                e.target.value = '';
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const previewImg = document.querySelector('.current-file img');
+                if (previewImg) {
+                    previewImg.src = e.target.result;
+                }
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+
+    document.getElementById('resume').addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file && file.size > 10 * 1024 * 1024) {
+            alert('File size exceeds 10MB limit');
+            e.target.value = '';
+        }
+    });
+</script>
+{% endblock %}
 {% endblock %}

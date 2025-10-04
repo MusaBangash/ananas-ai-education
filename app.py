@@ -1,8 +1,9 @@
-from flask import Flask, render_template, request, redirect, url_for, flash, send_from_directory, abort
+from flask import Flask, render_template, request, redirect, url_for, flash, send_from_directory, abort, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 from werkzeug.utils import secure_filename
 from werkzeug.security import generate_password_hash, check_password_hash
+from datetime import datetime
 import os
 
 app = Flask(__name__)
@@ -51,6 +52,14 @@ class Material(db.Model):
     filename = db.Column(db.String(200), nullable=False)
     description = db.Column(db.Text)
 
+class Gallery(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(100), nullable=False)
+    category = db.Column(db.String(50), nullable=False)
+    filename = db.Column(db.String(200), nullable=False)
+    description = db.Column(db.Text)
+    upload_date = db.Column(db.DateTime, default=datetime.utcnow)
+
 # Create tables
 with app.app_context():
     db.create_all()
@@ -67,16 +76,18 @@ def load_user(user_id):
 
 @app.route('/')
 def home():
-    return send_from_directory('.', 'index.html')
+    return redirect(url_for('dashboard'))
 
 @app.route('/about')
 def about():
     return render_template('about.html')
 
 @app.route('/dashboard')
-def dashboard():
-    notes = Material.query.filter_by(category='notes').all()
-    exercises = Material.query.filter_by(category='exercise').all()
+@app.route('/dashboard/<int:page>')
+def dashboard(page=1):
+    per_page = 10
+    notes = Material.query.filter_by(category='notes').paginate(page=page, per_page=per_page, error_out=False)
+    exercises = Material.query.filter_by(category='exercise').paginate(page=page, per_page=per_page, error_out=False)
     return render_template('dashboard.html', notes=notes, exercises=exercises)
 
 @app.route('/login', methods=['GET', 'POST'])
@@ -103,9 +114,11 @@ def logout():
     return redirect(url_for('home'))
 
 @app.route('/students')
-def students():
-    students_list = Student.query.all()
-    return render_template('students.html', students=students_list)
+@app.route('/students/<int:page>')
+def students(page=1):
+    per_page = 9  # Show 9 students per page (3x3 grid)
+    students_pagination = Student.query.paginate(page=page, per_page=per_page, error_out=False)
+    return render_template('students.html', students=students_pagination)
 
 @app.route('/student/add', methods=['GET', 'POST'])
 @login_required
@@ -275,6 +288,84 @@ def delete(id):
     except:
         flash('Error deleting material', 'error')
     return redirect(url_for('home'))
+
+def get_predefined_categories():
+    return [
+        ('General', 'General images'),
+        ('Education', 'Educational content'),
+        ('Tour', 'Tours and visits'),
+        ('Quiz', 'Quiz related'),
+        ('Information', 'Informational content'),
+        ('Facts', 'Interesting facts')
+    ]
+
+@app.route('/gallery')
+def gallery():
+    page = request.args.get('page', 1, type=int)
+    per_page = 12  # Show 12 images per page in a 3x4 grid
+    category = request.args.get('category', '')
+    
+    # Use predefined categories instead of querying from database
+    categories = get_predefined_categories()
+    
+    query = Gallery.query
+    if category:
+        query = query.filter_by(category=category)
+    
+    images = query.order_by(Gallery.upload_date.desc()).paginate(page=page, per_page=per_page, error_out=False)
+    return render_template('gallery.html', images=images, categories=categories, selected_category=category)
+
+@app.route('/gallery/upload', methods=['GET', 'POST'])
+@login_required
+def upload_gallery():
+    # Debug print to console
+    print(f"User authenticated: {current_user.is_authenticated}")
+    print(f"User is admin: {current_user.is_admin}")
+    
+    if not current_user.is_admin:
+        flash('Access denied. Admin privileges required.', 'error')
+        return redirect(url_for('gallery'))
+
+    if request.method == 'POST':
+        title = request.form.get('title')
+        category = request.form.get('category')
+        description = request.form.get('description')
+        image = request.files.get('image')
+
+        if image and title and category:
+            filename = secure_filename(f"gallery_{title}_{image.filename}")
+            image.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+            
+            gallery_item = Gallery(
+                title=title,
+                category=category,
+                filename=filename,
+                description=description
+            )
+            db.session.add(gallery_item)
+            db.session.commit()
+            flash('Image uploaded successfully!', 'success')
+            return redirect(url_for('gallery'))
+        
+        flash('Please fill in all required fields', 'error')
+    return render_template('upload_gallery.html')
+
+@app.route('/gallery/delete/<int:id>')
+@login_required
+def delete_gallery(id):
+    if not current_user.is_admin:
+        flash('Access denied. Admin privileges required.', 'error')
+        return redirect(url_for('gallery'))
+
+    image = Gallery.query.get_or_404(id)
+    try:
+        os.remove(os.path.join(app.config['UPLOAD_FOLDER'], image.filename))
+        db.session.delete(image)
+        db.session.commit()
+        flash('Image deleted successfully!', 'success')
+    except:
+        flash('Error deleting image', 'error')
+    return redirect(url_for('gallery'))
 
 if __name__ == '__main__':
     app.run(debug=True)
