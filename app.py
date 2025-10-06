@@ -66,7 +66,7 @@ with app.app_context():
     # Create admin user if not exists
     if not User.query.filter_by(username='admin').first():
         admin = User(username='admin', is_admin=True)
-        admin.set_password('admin123')  # Change this password!
+        admin.set_password('admin3327')  # Admin password set
         db.session.add(admin)
         db.session.commit()
 
@@ -341,9 +341,6 @@ def download(id, type=None):
             student = Student.query.get_or_404(id)
             filename = student.profile_picture if type == 'profile' else student.resume
         else:
-            if not current_user.is_authenticated:
-                flash('Please log in to download materials.', 'error')
-                return redirect(url_for('login'))
             material = Material.query.get_or_404(id)
             filename = material.filename
 
