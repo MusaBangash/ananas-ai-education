@@ -72,6 +72,44 @@
         </div>
     </div>
 
+    <!-- Search and Filter Section -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body">
+            <div class="row g-3">
+                <!-- Search Input -->
+                <div class="col-md-6">
+                    <div class="input-group">
+                        <span class="input-group-text bg-white border-end-0">
+                            <i class="fas fa-search text-muted"></i>
+                        </span>
+                        <input type="text" 
+                               class="form-control border-start-0 ps-0" 
+                               id="searchInput" 
+                               placeholder="Search materials..."
+                               onkeyup="filterMaterials()">
+                    </div>
+                </div>
+                <!-- Category Filter -->
+                <div class="col-md-3">
+                    <select class="form-select" id="categoryFilter" onchange="filterMaterials()">
+                        <option value="all">All Categories</option>
+                        <option value="notes">Study Materials</option>
+                        <option value="exercise">Exercises</option>
+                    </select>
+                </div>
+                <!-- Sort Order -->
+                <div class="col-md-3">
+                    <select class="form-select" id="sortOrder" onchange="filterMaterials()">
+                        <option value="newest">Newest First</option>
+                        <option value="oldest">Oldest First</option>
+                        <option value="az">A to Z</option>
+                        <option value="za">Z to A</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="row g-4">
         <!-- Study Materials -->
         <div class="col-lg-6">
@@ -80,6 +118,7 @@
                     <div class="d-flex justify-content-between align-items-center">
                         <h5 class="mb-0">
                             <i class="fas fa-book text-primary me-2"></i> Study Materials
+                            <span class="badge bg-primary ms-2" id="noteCount">{{ notes.total }}</span>
                         </h5>
                         {% if current_user.is_authenticated and current_user.is_admin %}
                         <a href="{{ url_for('upload') }}?type=note" class="btn btn-sm btn-outline-primary">
@@ -101,9 +140,6 @@
                                     <div>
                                         <h6 class="mb-1">{{ note.title }}</h6>
                                         <p class="text-muted mb-1 small">{{ note.description }}</p>
-                                        <small class="text-muted">
-                                            <i class="fas fa-clock me-1"></i> Added {{ note.created_at.strftime('%Y-%m-%d') if note.created_at }}
-                                        </small>
                                     </div>
                                 </div>
                                 <div class="btn-group">
@@ -158,9 +194,6 @@
                                     <div>
                                         <h6 class="mb-1">{{ exercise.title }}</h6>
                                         <p class="text-muted mb-1 small">{{ exercise.description }}</p>
-                                        <small class="text-muted">
-                                            <i class="fas fa-clock me-1"></i> Added {{ exercise.created_at.strftime('%Y-%m-%d') if exercise.created_at }}
-                                        </small>
                                     </div>
                                 </div>
                                 <div class="btn-group">
@@ -197,4 +230,132 @@
     </a>
 </div>
 {% endif %}
+
+<script>
+let debounceTimer;
+
+function debounce(func, wait) {
+    return function executedFunction(...args) {
+        const later = () => {
+            clearTimeout(debounceTimer);
+            func(...args);
+        };
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(later, wait);
+    };
+}
+
+function filterMaterials() {
+    const searchQuery = document.getElementById('searchInput').value.toLowerCase();
+    const categoryFilter = document.getElementById('categoryFilter').value;
+    const sortOrder = document.getElementById('sortOrder').value;
+
+    // Show loading state
+    const materials = document.querySelectorAll('.list-group-item');
+    materials.forEach(item => {
+        item.style.opacity = '0.5';
+    });
+
+    // Make API call to get filtered results
+    fetch(`/api/search-materials?search=${encodeURIComponent(searchQuery)}&category=${categoryFilter}&sort=${sortOrder}`)
+        .then(response => response.json())
+        .then(data => {
+            updateMaterials(data);
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            // Reset opacity on error
+            materials.forEach(item => {
+                item.style.opacity = '1';
+            });
+        });
+}
+
+function updateMaterials(data) {
+    const notesContainer = document.querySelector('.col-lg-6:first-child .list-group');
+    const exercisesContainer = document.querySelector('.col-lg-6:last-child .list-group');
+    
+    // Clear existing content
+    notesContainer.innerHTML = '';
+    exercisesContainer.innerHTML = '';
+    
+    let noteCount = 0;
+    let exerciseCount = 0;
+
+    data.forEach(item => {
+        const itemHtml = `
+            <div class="list-group-item p-3" data-category="${item.category}">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div class="d-flex align-items-center">
+                        <div class="me-3">
+                            <i class="fas fa-${item.category === 'notes' ? 'file-pdf text-danger' : 'file-code text-success'} fa-2x"></i>
+                        </div>
+                        <div>
+                            <h6 class="mb-1">${item.title}</h6>
+                            <p class="text-muted mb-1 small">${item.description || ''}</p>
+                        </div>
+                    </div>
+                    <div class="btn-group">
+                        <a href="/download/${item.id}" class="btn btn-light btn-sm">
+                            <i class="fas fa-download me-1"></i> Download
+                        </a>
+                        {% if current_user.is_authenticated and current_user.is_admin %}
+                        <a href="/delete/${item.id}" class="btn btn-light btn-sm text-danger" 
+                           onclick="return confirm('Are you sure you want to delete this item?')">
+                            <i class="fas fa-trash-alt"></i>
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        `;
+
+        if (item.category === 'notes') {
+            notesContainer.insertAdjacentHTML('beforeend', itemHtml);
+            noteCount++;
+        } else {
+            exercisesContainer.insertAdjacentHTML('beforeend', itemHtml);
+            exerciseCount++;
+        }
+    });
+
+    // Update counters
+    document.getElementById('noteCount').textContent = noteCount;
+    document.getElementById('exerciseCount').textContent = exerciseCount;
+
+    // Show empty state if no results
+    if (noteCount === 0) {
+        notesContainer.innerHTML = `
+            <div class="text-center py-5">
+                <i class="fas fa-book-open fa-3x text-muted mb-3"></i>
+                <p class="text-muted">No study materials found.</p>
+            </div>
+        `;
+    }
+    if (exerciseCount === 0) {
+        exercisesContainer.innerHTML = `
+            <div class="text-center py-5">
+                <i class="fas fa-tasks fa-3x text-muted mb-3"></i>
+                <p class="text-muted">No exercises found.</p>
+            </div>
+        `;
+    }
+
+    // Reset opacity
+    document.querySelectorAll('.list-group-item').forEach(item => {
+        item.style.opacity = '1';
+    });
+}
+
+// Add debounce to search input
+document.getElementById('searchInput').addEventListener('input', debounce(() => {
+    filterMaterials();
+}, 300));
+
+// Initial load
+document.addEventListener('DOMContentLoaded', () => {
+    filterMaterials();
+});
+</script>
+
 {% endblock %}
